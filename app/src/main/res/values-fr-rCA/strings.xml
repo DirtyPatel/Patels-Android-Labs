@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Patel\'s Android Labs</string>
     <string name="hello_message">Bonjour tout le monde!</string>
-
     <string name="button_message">Je suis un button</string>
+    <string name="spin_message">tournoyer le drapeau</string>
+
 </resources>
