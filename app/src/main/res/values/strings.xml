@@ -2,4 +2,9 @@
     <string name="app_name">Patel\'s Android Labs</string>
     <string name="hello_message">Hello world!!</string>
     <string name="button_message">I\'m a button</string>
+    <string name="messageHint" translatable="false">Message here</string>
+    <string name="receiveLabel" translatable="false">Receive</string>
+    <string name="sendLabel" translatable="false">Send</string>
+    <string name="sendImageDesc" translatable="false">Senders Image</string>
+    <string name="receiveImageDesc" translatable="false">Recipients Image</string>
 </resources>
