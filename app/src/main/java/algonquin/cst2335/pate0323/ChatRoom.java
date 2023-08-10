@@ -1,18 +1,22 @@
 package algonquin.cst2335.pate0323;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -41,7 +45,7 @@ public class ChatRoom extends AppCompatActivity {
     protected EditText textInput;
     protected Button btn;
     protected Button rBtn;
-    protected ArrayList<ChatMessage> messages;
+    ArrayList<ChatMessage> messages;
     MessageDatabase db;
     ChatMessageDAO mDAO;
     ChatRoomViewModel chatModel;
@@ -103,10 +107,21 @@ public class ChatRoom extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         db = Room.databaseBuilder(getApplicationContext(), MessageDatabase.class, "database-name").build();
         mDAO = db.cmDAO();
-
         binding = ActivityChatRoomBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        setSupportActionBar(binding.toolBar);
         chatModel = new ViewModelProvider(this).get(ChatRoomViewModel.class);
+        chatModel.selectedMessage.observe(this, newMessage ->{
+
+            if(newMessage != null) {
+                MessageDetailsFragment detailsFragment = new MessageDetailsFragment(newMessage);
+                FragmentManager fgmt = getSupportFragmentManager();
+                FragmentTransaction tx = fgmt.beginTransaction();
+                tx.addToBackStack("");
+                tx.replace(R.id.frameView, detailsFragment);
+                tx.commit();
+            }
+        });
         messages = chatModel.messages.getValue();
         btn = binding.sendButton;
         rBtn = binding.receiveButton;
@@ -189,6 +204,78 @@ public class ChatRoom extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+
+        if (itemId == R.id.item_1) {
+            deleteMessagePrompt();
+            return true;
+        } else if (itemId == R.id.item_2) {
+            showVersionInfo();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void deleteMessagePrompt() {
+        int selectedPosition = recyclerView.getChildLayoutPosition(recyclerView.getFocusedChild());
+
+        if (selectedPosition == -1 || selectedPosition >= messages.size()) {
+            Toast.makeText(this, "Please select a valid message to delete", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Question:")
+                .setMessage("Do you want to delete the message: " + messages.get(selectedPosition).getMessage())
+                .setNegativeButton("No", null)
+                .setPositiveButton("Yes", (dialog, which) -> deleteMessage(selectedPosition))
+                .show();
+    }
+
+    private void deleteMessage(int position) {
+        ChatMessage toDelete = messages.get(position);
+        Executor thread = Executors.newSingleThreadExecutor();
+        thread.execute(() -> {
+            mDAO.deleteMessage(toDelete);
+            messages.remove(position);
+            runOnUiThread(() -> {
+                myAdapter.notifyDataSetChanged();
+                showUndoSnackbar(position, toDelete);
+            });
+        });
+    }
+
+    private void showUndoSnackbar(int position, ChatMessage message) {
+        Snackbar.make(textInput, "Deleted message #" + position, Snackbar.LENGTH_LONG)
+                .setAction("Undo", v -> restoreMessage(position, message))
+                .show();
+    }
+
+    private void restoreMessage(int position, ChatMessage message) {
+        Executor thread = Executors.newSingleThreadExecutor();
+        thread.execute(() -> {
+            mDAO.insertMessage(message);
+            messages.add(position, message);
+            runOnUiThread(() -> myAdapter.notifyDataSetChanged());
+        });
+    }
+
+    private void showVersionInfo() {
+        String words = "Version 1.0, created by Dharti Patel";
+        Toast.makeText(this, words, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+
+        getMenuInflater().inflate(R.menu.my_menu, menu);
+
+        return true;
+    }
+
     class MyRowHolder extends RecyclerView.ViewHolder {
         TextView theMessage;
         TextView timestamp;
@@ -196,7 +283,11 @@ public class ChatRoom extends AppCompatActivity {
         public MyRowHolder(@NonNull View itemView) {
             super(itemView);
             itemView.setOnClickListener(clk -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(ChatRoom.this);
+
+                int index = getAbsoluteAdapterPosition();
+                chatModel.selectedMessage.postValue(messages.get(index));
+
+                /*AlertDialog.Builder builder = new AlertDialog.Builder(ChatRoom.this);
                 builder.setMessage("Do you want to delete the message: " + theMessage.getText())
                         .setTitle("Question:")
                         .setNegativeButton("No",((dialog, cl) -> {}))
@@ -219,7 +310,7 @@ public class ChatRoom extends AppCompatActivity {
                                         .show();
                             });
                         })
-                        .create().show();
+                        .create().show();*/
             });
             theMessage = itemView.findViewById(R.id.textMessageView);
             timestamp = itemView.findViewById(R.id.timestampView);
