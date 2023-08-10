@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">Patel\'s Android Labs</string>
-    <string name="hello_message">Hello world!!</string>
-    <string name="button_message">I\'m a button</string>
-    <string name="Login" />
+    <string name="city_message">Type in the name of a city:</string>
+    <string name="button_message">Get Forecast</string>
+    <string name="cityHint">Type city name here</string>
+    <string name="temp">The current temperature is: %s °C</string>
+    <string name="max">The maximum temperature is: %s °C</string>
+    <string name="min">The minimum temperature is: %s °C</string>
+    <string name="humidity">The humidity is: %s</string>  <string name="hello_message">Hello world!!</string>
+
+    />
 </resources>

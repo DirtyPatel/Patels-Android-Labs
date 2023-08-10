@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Patel\'s Android Labs</string>
-    <string name="hello_message">Bonjour tout le monde!</string>
-
-    <string name="button_message">Je suis un button</string>
+    <string name="city_message">tapez le nom d’une ville</string>
+    <string name="button_message">Obtenez des prévisions</string>
+    <string name="cityHint">Tapez le nom de la ville ici</string>
+    <string name="temp">La température actuelle est de : %s °C</string>
+    <string name="max">La température maximale est de : %s °C</string>
+    <string name="min">La température minimale est de : %s °C</string>
+    <string name="humidity">L’humidité est : %s</string>
+    <string name="hello_message">Bonjour le monde!!</string>
 </resources>
